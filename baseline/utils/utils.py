@@ -1,5 +1,5 @@
 import os
-import cPickle as pickle
+import _pickle as pickle
 import datetime
 import time
 # from contextlib import contextmanger
@@ -8,16 +8,20 @@ from torch.autograd import Variable
 import random
 import numpy as np
 
+
 def time_str(fmt=None):
     if fmt is None:
         fmt = '%Y-%m-%d_%H:%M:%S'
     return datetime.datetime.today().strftime(fmt)
 
+
 def str2bool(v):
     return v.lower() in ("yes", "true", "1")
 
+
 def is_iterable(obj):
     return hasattr(obj, '__len__')
+
 
 def to_scalar(vt):
     """
@@ -29,46 +33,54 @@ def to_scalar(vt):
         return vt.cpu().numpy().flatten()[0]
     raise TypeError('Input should be a variable or tensor')
 
+
 def set_seed(rand_seed):
-    np.random.seed( rand_seed )
-    random.seed( rand_seed )
+    np.random.seed(rand_seed)
+    random.seed(rand_seed)
     torch.backends.cudnn.enabled = True
-    torch.manual_seed( rand_seed )
-    torch.cuda.manual_seed( rand_seed )
+    torch.manual_seed(rand_seed)
+    torch.cuda.manual_seed(rand_seed)
+
 
 def may_mkdir(fname):
     if not os.path.exists(os.path.dirname(os.path.abspath(fname))):
         os.makedirs(os.path.dirname(os.path.abspath(fname)))
 
+
 class AverageMeter(object):
     """ 
     Computes and stores the average and current value
     """
+
     def __init__(self):
         self.val = 0
         self.avg = 0
         self.sum = 0
         self.count = 0
+
     def reset(self):
         self.val = 0
         self.avg = 0
         self.sum = 0
         self.count = 0
+
     def update(self, val, n=1):
         self.val = val
         self.sum += val * n
         self.count += n
         self.avg = float(self.sum) / (self.count + 1e-10)
 
+
 class RunningAverageMeter(object):
     """
     Computes and stores the running average and current value
     """
+
     def __init__(self, hist=0.99):
         self.val = None
         self.avg = None
         self.hist = hist
-    
+
     def reset(self):
         self.val = None
         self.avg = None
@@ -80,10 +92,12 @@ class RunningAverageMeter(object):
             self.avg = self.avg * self.hist + val * (1 - self.hist)
         self.val = val
 
+
 class RecentAverageMeter(object):
     """
     Stores and computes the average of recent values
     """
+
     def __init__(self, hist_size=100):
         self.hist_size = hist_size
         self.fifo = []
@@ -93,15 +107,17 @@ class RecentAverageMeter(object):
         self.fifo = []
         self.val = 0
 
-    def update(self, value):
+    def update(self, val):
         self.val = val
         self.fifo.append(val)
         if len(self.fifo) > self.hist_size:
             del self.fifo[0]
+
     @property
     def avg(self):
         assert len(self.fifo) > 0
         return float(sum(self.fifo)) / len(self.fifo)
+
 
 class ReDirectSTD(object):
     """
@@ -114,6 +130,7 @@ class ReDirectSTD(object):
       ReDirectSTD('stdout.txt', 'stdout', False)
       ReDirectSTD('stderr.txt', 'stderr', False)
     """
+
     def __init__(self, fpath=None, console='stdout', immediately_visiable=False):
         import sys
         import os
@@ -159,17 +176,19 @@ class ReDirectSTD(object):
             self.f.flush()
             import os
             os.fsync(self.f.fileno())
-    
+
     def close(self):
         self.console.close()
         if self.f is not None:
             self.f.close()
+
 
 def find_index(seq, item):
     for i, x in enumerate(seq):
         if item == x:
             return i
     return -1
+
 
 def set_devices(sys_device_ids):
     """
@@ -190,10 +209,12 @@ def set_devices(sys_device_ids):
     # the first device
     device_id = 0 if len(sys_device_ids) > 0 else -1
 
+
 def transfer_optims(optims, device_id=-1):
     for optim in optims:
         if isinstance(optim, torch.optim.Optimizer):
             transfer_optim_state(optim.state, device_id=device_id)
+
 
 def transfer_optim_state(state, device_id=-1):
     for key, val in state.items():
@@ -211,7 +232,7 @@ def transfer_optim_state(state, device_id=-1):
                     state[key] = val.cuda(device=device_id)
             except:
                 pass
-            
+
 
 def load_state_dict(model, src_state_dict):
     """
@@ -227,23 +248,20 @@ def load_state_dict(model, src_state_dict):
             continue
         if isinstance(param, Parameter):
             param = param.data
-        try:
             dest_state_dict[name].copy_(param)
-        except Exception, msg:
-            print("Warning: Error occurs when copying '{}': {}"
-                .format(name, str(msg)))
 
     src_missing = set(dest_state_dict.keys()) - set(src_state_dict.keys())
     if len(src_missing) > 0:
-        print ("Keys not found in source state_dict: ")
+        print("Keys not found in source state_dict: ")
         for n in src_missing:
             print('\t', n)
 
     dest_missint = set(src_state_dict.keys()) - set(dest_state_dict.keys())
     if len(dest_missint):
-        print ("Keys not found in destination state_dict: ")
+        print("Keys not found in destination state_dict: ")
         for n in dest_missint:
             print('\t', n)
+
 
 def load_ckpt(modules_optims, ckpt_file, load_to_cpu=True, verbose=True):
     """
@@ -262,6 +280,7 @@ def load_ckpt(modules_optims, ckpt_file, load_to_cpu=True, verbose=True):
             ckpt_file, ckpt['ep'], ckpt['scores']))
     return ckpt['ep'], ckpt['scores']
 
+
 def save_ckpt(modules_optims, ep, scores, ckpt_file):
     """
     save state_dict of modules/optimizers to file
@@ -276,12 +295,13 @@ def save_ckpt(modules_optims, ep, scores, ckpt_file):
         to cpu or your desired gpu, if you change devices.
     """
     state_dicts = [m.state_dict() for m in modules_optims]
-    ckpt = dict(state_dicts = state_dicts,
-                ep = ep,
-                scores = scores)
+    ckpt = dict(state_dicts=state_dicts,
+                ep=ep,
+                scores=scores)
     if not os.path.exists(os.path.dirname(os.path.abspath(ckpt_file))):
         os.mkdir(os.path.dirname(os.path.abspath(ckpt_file)))
     torch.save(ckpt, ckpt_file)
+
 
 def adjust_lr_staircase(param_groups, base_lrs, ep, decay_at_epochs, factor):
     """ Multiplied by a factor at the beging of specified epochs. Different
@@ -311,7 +331,8 @@ def adjust_lr_staircase(param_groups, base_lrs, ep, decay_at_epochs, factor):
     for i, (g, base_lr) in enumerate(zip(param_groups, base_lrs)):
         g['lr'] = base_lr * factor ** (ind + 1)
         print('=====> Param group {}: lr adjusted to {:.10f}'
-            .format(i, g['lr']).rstrip('0'))
+              .format(i, g['lr']).rstrip('0'))
+
 
 def may_set_mode(maybe_modules, mode):
     """

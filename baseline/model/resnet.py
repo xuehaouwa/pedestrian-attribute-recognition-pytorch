@@ -2,10 +2,8 @@ import torch.nn as nn
 import math
 import torch.utils.model_zoo as model_zoo
 
-
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
            'resnet152']
-
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -146,12 +144,14 @@ class ResNet(nn.Module):
 
         return x
 
+
 def remove_fc(state_dict):
     """ Remove the fc layer parameter from state_dict. """
+    copied_state_dict = state_dict.copy()
     for key, value in state_dict.items():
         if key.startswith('fc.'):
-            del state_dict[key]
-    return state_dict
+            del copied_state_dict[key]
+    return copied_state_dict
 
 
 def resnet18(pretrained=False, **kwargs):
