@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-python ./script/experiment/train_deepmar_resnet50.py \
+python train_deepmar_resnet50.py \
     --sys_device_ids="(0,)" \
     --dataset=peta \
     --partition_idx=0 \

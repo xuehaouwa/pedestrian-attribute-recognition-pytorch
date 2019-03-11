@@ -106,7 +106,7 @@ class Config(object):
         partitions['rap2'] = './dataset/rap2/rap2_partition.pkl'
         
         self.dataset_name = args.dataset
-        if not datasets.has_key(args.dataset) or not partitions.has_key(args.dataset):
+        if not args.dataset in datasets.keys() or not args.dataset in partitions.keys():
             print("Please select the right dataset name.")
             raise ValueError
         else:

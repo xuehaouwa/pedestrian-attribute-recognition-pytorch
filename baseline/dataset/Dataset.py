@@ -21,16 +21,23 @@ class AttDataset(data.Dataset):
             target_transform=None,
             **kwargs):
         if os.path.exists(dataset):
-            self.dataset = pickle.load(open(dataset))
+            # self.dataset = pickle.load(open(dataset))
+            with open(dataset, 'rb') as f:
+                raw_data = f.read()
+            self.dataset = pickle.loads(raw_data)
         else:
             print(dataset + ' does not exist in dataset.')
             raise ValueError
         if os.path.exists(partition):
-            self.partition = pickle.load(open(partition))
+            # self.partition = pickle.load(open(partition))
+            with open(partition, 'rb') as f:
+                raw = f.read()
+            self.partition = pickle.loads(raw)
+
         else:
             print(partition + ' does not exist in dataset.')
             raise ValueError
-        if not self.partition.has_key(split):
+        if not split in self.partition.keys():
             print(split + ' does not exist in dataset.')
             raise ValueError
 
