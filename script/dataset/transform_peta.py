@@ -25,7 +25,7 @@ def generate_data_description(save_dir):
     dataset['image'] = []
     dataset['att'] = []
     dataset['att_name'] = []
-    dataset['selected_attribute'] = range(35)
+    dataset['selected_attribute'] = range(105)
     # load PETA.MAT
     data = loadmat('./dataset/peta/PETA.mat')
     for idx in range(105):

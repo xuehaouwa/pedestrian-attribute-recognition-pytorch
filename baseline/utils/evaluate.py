@@ -24,7 +24,7 @@ def extract_feat(feat_func, dataset, **kwargs):
         feat_tmp = feat_func(imgs_var)
         batch_size = feat_tmp.shape[0]
         if ep == 0:
-            feat = np.zeros((N, feat_tmp.size / batch_size))
+            feat = np.zeros((N, int(feat_tmp.size / batch_size)))
         feat[start:start + batch_size, :] = feat_tmp.reshape((batch_size, -1))
         start += batch_size
     end_time = time.time()
